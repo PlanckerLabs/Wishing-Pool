@@ -1,9 +1,17 @@
+"use client";
 import Link from "next/link";
 import * as React from 'react';
 import { useAccount, useSignMessage } from 'wagmi'
 import { verifyMessage } from 'ethers/lib/utils'
 const Hero = () => {
-
+  const recoveredAddress = React.useRef<string>()
+  const { data, error, isLoading, signMessage } = useSignMessage({
+    onSuccess(data, variables) {
+      // Verify signature when sign message succeeds
+      const address = verifyMessage(variables.message, data)
+      recoveredAddress.current = address
+    },
+  })
   return (
     <>
       <section
@@ -40,11 +48,18 @@ const Hero = () => {
                     Mint
                   </button>
                   <button className="px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out rounded-md bg-primary hover:bg-primary/80"
-                  // onClick={(event) => {
-                  //   event.preventDefault()
-                  //   const message = ' Why We Need the Wishing Pool?'
-                  //   signMessage({ message })
-                  // }}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      const message = `
+                      Why We Need the Wishing Pool?
+                      In real life, a Wishing Pool is a place where people reflect on and express their inner hopes for the future. It transcends cultural and geographical barriers and exists widely in every corner of society where people have hopes for better social realities. Through ritualistic gestures, people entrust their wishes to gods or the universe. Alternatively, by sharing their wishes with those around them through sincere and imaginative public expressions in this symbolic public space, people create connections between individuals, and give blessings to each other.
+                      Every wish, whether private or public, is a call from the individual to the desired reality in their heart. The Wishing Pool is where these diverse social calls converge. Based on physical space, the Wishing Pool can only convey these wishes to a limited extent. The process of making wishes come true depends more on the individual's efforts, or the favor of the gods.
+                      In today's era of information technology, if we could link each other's wishes through the internet, and let these imaginative wishes for society be seen by each other, perhaps we could connect more people with similar expectations, and make some consensus wishes come true.
+                      Building a globally shared Wishing Pool based on blockchain infrastructure is to make the social calls of this era visible to the public and to truly trigger them to become a certain reality.
+                      Imagination is more important than knowledge. Knowledge is limited. Imagination encircles the world. ——Albert Einstein
+                      `
+                      signMessage({ message })
+                    }}
                   >
                     Signature
                   </button>
