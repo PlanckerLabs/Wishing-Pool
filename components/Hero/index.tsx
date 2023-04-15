@@ -310,7 +310,7 @@ const Hero = () => {
           </svg>
         </div>
       </section>
-      <section className="relative z-10 overflow-hidden  pb-16  md:pb-[120px]  xl:pb-[160px] 2xl:pt-[210px] 2xl:pb-[200px]">
+      <section className="relative z-10 overflow-hidden  pb-16  md:pb-[120px]  xl:pb-[160px] 2xl:pb-[200px]">
         <div className="container">
           <div className="flex flex-wrap -mx-4">
             <div

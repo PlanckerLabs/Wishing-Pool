@@ -87,7 +87,7 @@ const Header = () => {
                   isConnected &&
                   <button
                     className="flex items-center justify-center w-full py-4 text-base font-medium text-white transition duration-300 ease-in-out rounded-md bg-primary px-9 hover:bg-opacity-80 hover:shadow-signUp"
-                    onClick={() => disconnect}>Disconnect</button>
+                    onClick={() => disconnect()}>Disconnect</button>
                 }
                 <div>
                   <ThemeToggler />
