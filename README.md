@@ -1,2 +1,2 @@
 # Well
-Well-Zuzalu-Hackathon-Project-Plancker
+Wishing Pool-Zuzalu-Hackathon-Project-Plancker
