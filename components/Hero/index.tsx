@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import * as React from 'react';
-import { useSignMessage, useNetwork, useSwitchNetwork } from 'wagmi'
+import { useSignMessage, useNetwork, useSwitchNetwork, useAccount } from 'wagmi'
 import { verifyMessage } from 'ethers/lib/utils'
 import YoruAbi from '@/abi/ugly/WisherIssuer.json'
 const Datastore = require('nedb');
@@ -10,15 +10,35 @@ import { ethers } from 'ethers';
 
 const db = new Datastore({ filename: 'datafile.db', autoload: true });
 const wishdb = new Datastore({ filename: 'wishlist.db', autoload: true });
-// db.remove({}, { multi: true }, function (err, numRemoved) {
-// });
-// wishdb.remove({}, { multi: true }, function (err, numRemoved) {
-// });
+const Power = new Datastore({ filename: 'power.db', autoload: true });
+db.remove({}, { multi: true }, function (err, numRemoved) {
+});
+wishdb.remove({}, { multi: true }, function (err, numRemoved) {
+});
+Power.remove({}, { multi: true }, function (err, numRemoved) {
+});
+
 const Hero = () => {
+
   const recoveredAddress = React.useRef<string>()
   const wisthtextInput = React.useRef<any>()
   const [wishs, setWishs] = useState([]);
   const [singusers, setSingUsers] = useState([]);
+  const [power, setPower] = useState(0);
+  const [powers, setPowers] = useState([]);
+  const { address, isConnected } = useAccount({
+    onConnect({ address, connector, isReconnected }) {
+
+      Power.find({ address: address }, function (err, docs) {
+        console.log('Power', docs);
+        if (docs.length > 0) {
+          setPowers(docs);
+          setPower(docs[0].power);
+        }
+        //setPower(docs.power);
+      });
+    },
+  })
   const { error: switchNetWorkError, isLoading: switchNetworkLoading, pendingChainId, switchNetwork } =
     useSwitchNetwork()
 
@@ -103,16 +123,49 @@ const Hero = () => {
                         } else {
                           // usePrepareContractWrite, useContractWrite .... so many hooks not working
                           // using ethers ...
-                          const contractAddress = '0x42f034CD03E06087870cF0D662EA6dB389E3364f'; // replace with your contract address
-                          const contractABI = YoruAbi // replace with your contract's ABI
+                          // const contractAddress = '0x42f034CD03E06087870cF0D662EA6dB389E3364f'; // replace with your contract address
+                          // const contractABI = YoruAbi // replace with your contract's ABI
+                          // const provider = new ethers.providers.Web3Provider(window.ethereum);
+                          // const signer = provider.getSigner();
+                          // const contract = new ethers.Contract(contractAddress, contractABI, signer);
+                          // const options = { value: ethers.utils.parseEther("0.1") }
+                          // const result = await contract.mint(options);
+                          if (true) {
+                            Power.find({ address: address }, function (err, docs) {
+                              console.log('Power', docs);
+                              if (docs.length > 0) {
+                                let t = docs[0].power;
+                                t = t + 100;
+                                console.log('docs[0]._id', docs[0]._id)
+                                Power.remove({ _id: docs[0]._id }, {}, function (err, numRemoved) {
+                                  let aaa = { address: address, power: t }
+                                  Power.insert(aaa, function (err, newDoc) {
+                                    console.log(err)
+                                    setPower(t);
+                                    Power.find({}, function (err, ccc) {
+                                      console.log('bbbb', ccc)
+                                      setPowers(ccc);
+                                    });
+                                    // Do something with the newly inserted data
+                                  });
+                                });
+                              } else {
+                                let aaa = { address: address, power: 100 }
+                                Power.insert(aaa, function (err, newDoc) {
 
-                          const provider = new ethers.providers.Web3Provider(window.ethereum);
-                          const signer = provider.getSigner();
+                                  setPower(100);
+                                  Power.find({}, function (err, ccc) {
 
-                          const contract = new ethers.Contract(contractAddress, contractABI, signer);
-                          console.log(contract);
-                          const options = { value: ethers.utils.parseEther("0.1") }
-                          const result = await contract.mint(options);
+                                    setPowers(ccc);
+                                  });
+                                  // Do something with the newly inserted data
+                                });
+                              }
+
+                            });
+                            console.log('mint success');
+                          }
+
                         }
 
                       }
@@ -138,6 +191,11 @@ const Hero = () => {
                     Signature
                   </button>
                 </div>
+                <h1 className="pr-5">
+                  {
+                    (isConnected && powers.length > 0) ? <p>Wish Power:{power}</p> : 'Wish Power: 0'
+                  }
+                </h1>
               </div>
             </div>
           </div>
@@ -451,11 +509,35 @@ const Hero = () => {
                             <h2> {wish.wish} </h2>
                           </div>
                           <div className="w-1/2 mb-8 ml-5">
-                            <button className="px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out rounded-md bg-primary hover:bg-primary/80">
-                              Submit
+                            <button className="px-8 py-4 text-xs font-semibold text-white duration-300 ease-in-out rounded-md bg-primary hover:bg-primary/80"
+                              onClick={(event) => {
+                                Power.find({ address: address }, function (err, docs) {
+                                  console.log('Power', docs);
+                                  if (docs.length > 0) {
+                                    let t = docs[0].power;
+                                    t = t - 10;
+                                    console.log('docs[0]._id', docs[0]._id)
+                                    Power.remove({ _id: docs[0]._id }, {}, function (err, numRemoved) {
+                                      let aaa = { address: address, power: t }
+                                      Power.insert(aaa, function (err, newDoc) {
+                                        console.log(err)
+                                        setPower(t);
+                                        Power.find({}, function (err, ccc) {
+                                          console.log('bbbb', ccc)
+                                          setPowers(ccc);
+                                        });
+                                        // Do something with the newly inserted data
+                                      });
+
+                                    });
+                                  }
+                                })
+                              }}
+                            >
+                              Bless  Use < br /> Wish Power
                             </button>
                           </div>
-                        </div>
+                        </div >
                       </>
                     ))
                   }
@@ -465,7 +547,7 @@ const Hero = () => {
           </div>
         </div>
 
-      </section>
+      </section >
     </>
   );
 };

@@ -2,15 +2,29 @@
 import * as React from 'react';
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useReducer } from "react";
 import ThemeToggler from "./ThemeToggler";
 import menuData from "./menuData";
 import { useConnect, useAccount, useDisconnect, useSignMessage } from 'wagmi'
 import { verifyMessage } from 'ethers/lib/utils'
+const Datastore = require('nedb');
+const Power = new Datastore({ filename: 'power.db', autoload: true });
 
 const Header = () => {
 
-  const { address, isConnected } = useAccount()
+  const { address, isConnected } = useAccount({
+    onConnect({ address, connector, isReconnected }) {
+
+      Power.find({ address: address }, function (err, docs) {
+        console.log('Power', docs);
+        if (docs.length > 0) {
+          setPowers(docs);
+          setPower(docs[0].power);
+        }
+        //setPower(docs.power);
+      });
+    },
+  })
   const { connect, connectors, error, isLoading, pendingConnector } =
     useConnect()
   const { disconnect } = useDisconnect()
@@ -22,6 +36,8 @@ const Header = () => {
 
   // Sticky Navbar
   const [sticky, setSticky] = useState(false);
+  const [power, setPower] = useState(0);
+  const [powers, setPowers] = useState([]);
   const handleStickyNavbar = () => {
     if (window.scrollY >= 80) {
       setSticky(true);
@@ -31,7 +47,11 @@ const Header = () => {
   };
   useEffect(() => {
     window.addEventListener("scroll", handleStickyNavbar);
-  });
+    Power.find({ address: address }, function (err, docs) {
+      console.log('Power', docs);
+      setPowers(docs);
+    });
+  }, []);
 
   // submenu handler
   const [openIndex, setOpenIndex] = useState(-1);
@@ -67,11 +87,17 @@ const Header = () => {
                 className={`header-logo block w-full ${sticky ? "py-5 lg:py-2" : "py-8"
                   } `}
               >
-                <h1>Wishing Pool</h1>
+                <h1>
+                  Wishing Pools
+                </h1>
               </Link>
             </div>
             <div className="flex items-center justify-end w-full px-4">
-              <h1 className="pr-5">Wishing Power</h1>
+              {/* <h1 className="pr-5">
+                {
+                  (isConnected && powers.length > 0) ? <p>Wish Power:{power}</p> : 'Wish Power: 0'
+                }
+              </h1> */}
               <div className="flex items-center justify-end pr-16 lg:pr-0">
                 {
                   connectors.map((connector) => (
