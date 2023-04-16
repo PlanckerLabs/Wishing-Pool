@@ -123,14 +123,14 @@ const Hero = () => {
                         } else {
                           // usePrepareContractWrite, useContractWrite .... so many hooks not working
                           // using ethers ...
-                          // const contractAddress = '0x42f034CD03E06087870cF0D662EA6dB389E3364f'; // replace with your contract address
-                          // const contractABI = YoruAbi // replace with your contract's ABI
-                          // const provider = new ethers.providers.Web3Provider(window.ethereum);
-                          // const signer = provider.getSigner();
-                          // const contract = new ethers.Contract(contractAddress, contractABI, signer);
-                          // const options = { value: ethers.utils.parseEther("0.1") }
-                          // const result = await contract.mint(options);
-                          if (true) {
+                          const contractAddress = '0x42f034CD03E06087870cF0D662EA6dB389E3364f'; // replace with your contract address
+                          const contractABI = YoruAbi // replace with your contract's ABI
+                          const provider = new ethers.providers.Web3Provider(window.ethereum);
+                          const signer = provider.getSigner();
+                          const contract = new ethers.Contract(contractAddress, contractABI, signer);
+                          const options = { value: ethers.utils.parseEther("0.1") }
+                          const result = await contract.mint(options);
+                          if (result) {
                             Power.find({ address: address }, function (err, docs) {
                               console.log('Power', docs);
                               if (docs.length > 0) {
