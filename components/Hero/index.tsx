@@ -1,17 +1,61 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from 'react';
 import * as React from 'react';
 import { useAccount, useSignMessage } from 'wagmi'
 import { verifyMessage } from 'ethers/lib/utils'
+
+const Datastore = require('nedb');
+
+const db = new Datastore({ filename: 'datafile.db', autoload: true });
+const wishdb = new Datastore({ filename: 'wishlist.db', autoload: true });
+// db.remove({}, { multi: true }, function (err, numRemoved) {
+// });
+// wishdb.remove({}, { multi: true }, function (err, numRemoved) {
+// });
 const Hero = () => {
   const recoveredAddress = React.useRef<string>()
+  const wisthtextInput = React.useRef<any>()
+  const [wishs, setWishs] = useState([]);
+  const [singusers, setSingUsers] = useState([]);
+
   const { data, error, isLoading, signMessage } = useSignMessage({
     onSuccess(data, variables) {
       // Verify signature when sign message succeeds
       const address = verifyMessage(variables.message, data)
       recoveredAddress.current = address
+      const user = { address: recoveredAddress.current, date: new Date() };
+
+      db.find({ address: user.address }, function (err, docs) {
+        if (docs.length == 0) {
+          db.insert(user, function (err, newDoc) {
+            // console.log('ccc')
+            // console.log(newDoc)
+            console.log(err)
+            db.find({}, function (err, ccc) {
+              //console.log('abc')
+              setSingUsers(ccc);
+              //console.log(ccc);
+            });
+            // Do something with the newly inserted data
+          });
+        }
+      });
+
+
     },
   })
+
+  useEffect(() => {
+    db.find({}, function (err, docs) {
+      console.log(docs);
+      setSingUsers(docs);
+    });
+    wishdb.find({}, function (err, docs) {
+      console.log('wishdb', docs);
+      setWishs(docs);
+    });
+  }, []);
   return (
     <>
       <section
@@ -40,10 +84,11 @@ const Hero = () => {
                 <p>
                   Building a globally shared Wishing Pool based on blockchain infrastructure is to make the social calls of this era visible to the public and to truly trigger them to become a certain reality.
                 </p>
-                <p>
+                <p className="pb-5">
                   Imagination is more important than knowledge. Knowledge is limited. Imagination encircles the world. ——Albert Einstein
                 </p>
                 <div className="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+
                   <button className="px-8 py-4 text-base font-semibold text-black duration-300 ease-in-out rounded-md bg-black/20 hover:bg-black/30 dark:bg-white/20 dark:text-white dark:hover:bg-white/30">
                     Mint
                   </button>
@@ -58,7 +103,8 @@ const Hero = () => {
                       Building a globally shared Wishing Pool based on blockchain infrastructure is to make the social calls of this era visible to the public and to truly trigger them to become a certain reality.
                       Imagination is more important than knowledge. Knowledge is limited. Imagination encircles the world. ——Albert Einstein
                       `
-                      signMessage({ message })
+                      signMessage({ message });
+
                     }}
                   >
                     Signature
@@ -319,18 +365,51 @@ const Hero = () => {
             >
               <h3 className="mb-4 text-xl font-bold">Sign List</h3>
               <div className="wow w-full fadeInUp mb-12 rounded-md bg-primary/[3%] py-11 px-8 dark:bg-dark sm:p-[55px] lg:mb-5 lg:px-8 xl:p-[55px]" data-wow-delay=".15s ">
-                <h1>0x5769D4dc2581b6568DE1fea142Ec0CAC003A5433</h1>
+                <>
+                  {
+                    singusers.map((singuser) => (
+                      <>
+                        <h1 className="font-bold"> {singuser.date.toDateString()} </h1>
+                        <br />
+                        <h1> {singuser.address}</h1>
+                      </>
+                    ))
+                  }
+                </>
               </div>
               <div className="flex items-center justify-between w-full px-14">
                 <div className="w-2/3 mb-8">
                   <input
                     type="text"
+                    ref={wisthtextInput}
                     placeholder="Enter your Wishing"
                     className="w-full rounded-md border border-transparent py-3 px-6 text-base text-body-color placeholder-body-color shadow-one outline-none focus:border-primary focus-visible:shadow-none dark:bg-[#242B51] dark:shadow-signUp"
                   />
                 </div>
                 <div className="w-1/3 mb-8 ml-5">
-                  <button className="px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out rounded-md bg-primary hover:bg-primary/80">
+                  <button className="px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out rounded-md bg-primary hover:bg-primary/80"
+                    onClick={(event) => {
+                      event.preventDefault()
+                      console.log(wisthtextInput.current.value)
+                      const wish = { wish: wisthtextInput.current.value, date: new Date() };
+
+                      wishdb.find({ wish: wisthtextInput.current.value }, function (err, docs) {
+                        if (docs.length == 0) {
+                          wishdb.insert(wish, function (err, newDoc) {
+                            // console.log('ccc')
+                            // console.log(newDoc)
+                            console.log(err)
+                            wishdb.find({}, function (err, ccc) {
+                              //console.log('abc')
+                              setWishs(ccc);
+                              //console.log(ccc);
+                            });
+                            // Do something with the newly inserted data
+                          });
+                        }
+                      });
+                    }}
+                  >
                     Submit
                   </button>
                 </div>
@@ -339,7 +418,25 @@ const Hero = () => {
                 Wish List
               </h1>
               <div className="wow w-full fadeInUp mb-12 rounded-md bg-primary/[3%] py-11 px-8 dark:bg-dark sm:p-[55px] lg:mb-5 lg:px-8 xl:p-[55px]" data-wow-delay=".15s ">
-                <div className="flex items-center justify-between w-full">
+                <>
+                  {
+                    wishs.map((wish) => (
+                      <>
+                        <div className="flex items-center justify-between w-full">
+                          <div className="w-1/2 mb-8">
+                            <h2> {wish.wish} </h2>
+                          </div>
+                          <div className="w-1/2 mb-8 ml-5">
+                            <button className="px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out rounded-md bg-primary hover:bg-primary/80">
+                              Submit
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    ))
+                  }
+                </>
+                {/* <div className="flex items-center justify-between w-full">
                   <div className="w-1/2 mb-8">
                     <h2> Wish 1</h2>
                   </div>
@@ -368,7 +465,7 @@ const Hero = () => {
                       Submit
                     </button>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
