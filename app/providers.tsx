@@ -1,7 +1,7 @@
 "use client";
 
 import { ThemeProvider } from "next-themes";
-import { mainnet, polygon, polygonMumbai } from 'wagmi/chains'
+import { goerli, sepolia } from 'wagmi/chains'
 import { WagmiConfig, createClient, configureChains } from 'wagmi'
 
 import { alchemyProvider } from 'wagmi/providers/alchemy'
@@ -13,7 +13,7 @@ import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 // Configure chains & providers with the Alchemy provider.
 // Two popular providers are Alchemy (alchemy.com) and Infura (infura.io)
 const { chains, provider } = configureChains(
-  [mainnet, polygon, polygonMumbai],
+  [goerli],
   [alchemyProvider({ apiKey: 'HWqVSw02RgUcvkTMrVq39hQqG5iticAV' }), publicProvider()],
 )
 

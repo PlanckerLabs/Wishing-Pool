@@ -1,11 +1,12 @@
 "use client";
-import Link from "next/link";
+
 import { useEffect, useState } from 'react';
 import * as React from 'react';
-import { useAccount, useSignMessage } from 'wagmi'
+import { useSignMessage, useNetwork, useSwitchNetwork } from 'wagmi'
 import { verifyMessage } from 'ethers/lib/utils'
-
+import YoruAbi from '@/abi/ugly/WisherIssuer.json'
 const Datastore = require('nedb');
+import { ethers } from 'ethers';
 
 const db = new Datastore({ filename: 'datafile.db', autoload: true });
 const wishdb = new Datastore({ filename: 'wishlist.db', autoload: true });
@@ -18,8 +19,10 @@ const Hero = () => {
   const wisthtextInput = React.useRef<any>()
   const [wishs, setWishs] = useState([]);
   const [singusers, setSingUsers] = useState([]);
+  const { error: switchNetWorkError, isLoading: switchNetworkLoading, pendingChainId, switchNetwork } =
+    useSwitchNetwork()
 
-  const { data, error, isLoading, signMessage } = useSignMessage({
+  const { data, error: signMessageError, isLoading: signMessageLoading, signMessage } = useSignMessage({
     onSuccess(data, variables) {
       // Verify signature when sign message succeeds
       const address = verifyMessage(variables.message, data)
@@ -45,6 +48,8 @@ const Hero = () => {
 
     },
   })
+
+  const { chain } = useNetwork()
 
   useEffect(() => {
     db.find({}, function (err, docs) {
@@ -89,7 +94,30 @@ const Hero = () => {
                 </p>
                 <div className="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
 
-                  <button className="px-8 py-4 text-base font-semibold text-black duration-300 ease-in-out rounded-md bg-black/20 hover:bg-black/30 dark:bg-white/20 dark:text-white dark:hover:bg-white/30">
+                  <button className="px-8 py-4 text-base font-semibold text-black duration-300 ease-in-out rounded-md bg-black/20 hover:bg-black/30 dark:bg-white/20 dark:text-white dark:hover:bg-white/30"
+                    onClick={async (event) => {
+                      event.preventDefault()
+                      if (chain != undefined) {
+                        if (chain.id != 5) {
+                          switchNetwork(5)
+                        } else {
+                          // usePrepareContractWrite, useContractWrite .... so many hooks not working
+                          // using ethers ...
+                          const contractAddress = '0x42f034CD03E06087870cF0D662EA6dB389E3364f'; // replace with your contract address
+                          const contractABI = YoruAbi // replace with your contract's ABI
+
+                          const provider = new ethers.providers.Web3Provider(window.ethereum);
+                          const signer = provider.getSigner();
+
+                          const contract = new ethers.Contract(contractAddress, contractABI, signer);
+                          console.log(contract);
+                          const options = { value: ethers.utils.parseEther("0.1") }
+                          const result = await contract.mint(options);
+                        }
+
+                      }
+                    }}
+                  >
                     Mint
                   </button>
                   <button className="px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out rounded-md bg-primary hover:bg-primary/80"
@@ -396,13 +424,9 @@ const Hero = () => {
                       wishdb.find({ wish: wisthtextInput.current.value }, function (err, docs) {
                         if (docs.length == 0) {
                           wishdb.insert(wish, function (err, newDoc) {
-                            // console.log('ccc')
-                            // console.log(newDoc)
                             console.log(err)
                             wishdb.find({}, function (err, ccc) {
-                              //console.log('abc')
                               setWishs(ccc);
-                              //console.log(ccc);
                             });
                             // Do something with the newly inserted data
                           });
@@ -436,36 +460,6 @@ const Hero = () => {
                     ))
                   }
                 </>
-                {/* <div className="flex items-center justify-between w-full">
-                  <div className="w-1/2 mb-8">
-                    <h2> Wish 1</h2>
-                  </div>
-                  <div className="w-1/2 mb-8 ml-5">
-                    <button className="px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out rounded-md bg-primary hover:bg-primary/80">
-                      Submit
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between w-full">
-                  <div className="w-1/2 mb-8">
-                    <h2> Wish 2</h2>
-                  </div>
-                  <div className="w-1/2 mb-8 ml-5">
-                    <button className="px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out rounded-md bg-primary hover:bg-primary/80">
-                      Submit
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between w-full">
-                  <div className="w-1/2 mb-8">
-                    <h2> Wish 3</h2>
-                  </div>
-                  <div className="w-1/2 mb-8 ml-5">
-                    <button className="px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out rounded-md bg-primary hover:bg-primary/80">
-                      Submit
-                    </button>
-                  </div>
-                </div> */}
               </div>
             </div>
           </div>
