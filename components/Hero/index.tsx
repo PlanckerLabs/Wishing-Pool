@@ -11,12 +11,12 @@ import { ethers } from 'ethers';
 const db = new Datastore({ filename: 'datafile.db', autoload: true });
 const wishdb = new Datastore({ filename: 'wishlist.db', autoload: true });
 const Power = new Datastore({ filename: 'power.db', autoload: true });
-db.remove({}, { multi: true }, function (err, numRemoved) {
-});
-wishdb.remove({}, { multi: true }, function (err, numRemoved) {
-});
-Power.remove({}, { multi: true }, function (err, numRemoved) {
-});
+// db.remove({}, { multi: true }, function (err, numRemoved) {
+// });
+// wishdb.remove({}, { multi: true }, function (err, numRemoved) {
+// });
+// Power.remove({}, { multi: true }, function (err, numRemoved) {
+// });
 
 const Hero = () => {
 
